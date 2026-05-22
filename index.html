@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>VibeSpace — Your Mood, Animated Alive</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><radialGradient id='g' cx='50%' cy='50%' r='50%'><stop offset='0%' stop-color='%23f472b6'/><stop offset='100%' stop-color='%23a78bfa'/></radialGradient></defs><circle cx='50' cy='50' r='48' fill='url(%23g)'/><text y='.9em' font-size='60' x='18'>✨</text></svg>"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --purple:#a78bfa;--pink:#f472b6;--green:#34d399;--yellow:#fbbf24;
+  --blue:#60a5fa;--red:#f87171;--teal:#2dd4bf;--orange:#fb923c;
+  --bg:#080b1a;--card:#ffffff0d;--border:#ffffff18;
+  --font-display:'Syne',sans-serif;--font-body:'DM Sans',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:#fff;
+  font-family:var(--font-body);overflow-x:hidden;
+  cursor:none;min-height:100vh;
+}
+
+/* CUSTOM CURSOR */
+#cursor{
+  position:fixed;width:14px;height:14px;border-radius:50%;
+  background:radial-gradient(circle,var(--pink),var(--purple));
+  pointer-events:none;z-index:9999;transform:translate(-50%,-50%);
+  transition:transform 0.08s;mix-blend-mode:screen;
+}
+#cursor-trail{
+  position:fixed;width:36px;height:36px;border-radius:50%;
+  border:1.5px solid var(--purple);pointer-events:none;z-index:9998;
+  transform:translate(-50%,-50%);transition:left 0.18s cubic-bezier(.2,.8,.4,1),top 0.18s cubic-bezier(.2,.8,.4,1);
+  opacity:0.5;
+}
+.cursor-big{transform:translate(-50%,-50%) scale(2.5) !important}
+
+/* PARTICLES */
+.particle{
+  position:fixed;border-radius:50%;pointer-events:none;z-index:9997;
+  animation:particleFade 0.8s ease-out forwards;
+}
+@keyframes particleFade{0%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-50px) scale(0);opacity:0}}
+
+/* ===================== SCREENS ===================== */
+.screen{
+  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;transition:opacity 0.6s,transform 0.6s;
+  overflow:hidden;
+}
+.screen.hidden{opacity:0;pointer-events:none;transform:scale(1.04)}
+
+/* ===================== CANVAS BG ===================== */
+#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+/* ===================== LANDING ===================== */
+#screen-landing{z-index:10}
+.landing-content{
+  position:relative;z-index:2;text-align:center;padding:24px;
+  animation:landingReveal 1s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes landingReveal{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+
+.logo-wrap{
+  display:inline-flex;align-items:center;gap:14px;margin-bottom:32px;
+  animation:logoFloat 3s ease-in-out infinite;
+}
+@keyframes logoFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+
+.logo-svg{width:72px;height:72px;filter:drop-shadow(0 0 24px #a78bfa88)}
+.logo-text{
+  font-family:var(--font-display);font-size:52px;font-weight:800;
+  background:linear-gradient(135deg,var(--purple),var(--pink),var(--yellow));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  letter-spacing:-1px;line-height:1;
+  animation:textGlow 3s ease-in-out infinite alternate;
+}
+@keyframes textGlow{from{filter:drop-shadow(0 0 8px #a78bfa66)}to{filter:drop-shadow(0 0 24px #f472b666)}}
+
+.tagline{
+  font-size:15px;color:#a78bfa99;letter-spacing:3px;text-transform:uppercase;
+  font-weight:300;margin-bottom:40px;
+  animation:fadeSlideUp 1s 0.4s both;
+}
+@keyframes fadeSlideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+.enter-btn{
+  position:relative;padding:16px 52px;border-radius:999px;border:none;
+  background:linear-gradient(90deg,var(--purple),var(--pink));
+  font-family:var(--font-display);font-size:18px;font-weight:700;color:#fff;
+  cursor:none;letter-spacing:1px;overflow:hidden;
+  animation:fadeSlideUp 1s 0.7s both,btnPulse 2.5s 1.7s ease-in-out infinite;
+  transition:transform 0.2s;
+}
+.enter-btn::before{
+  content:'';position:absolute;inset:-2px;border-radius:999px;
+  background:linear-gradient(90deg,var(--yellow),var(--pink),var(--purple),var(--teal));
+  z-index:-1;animation:rotateBorder 3s linear infinite;
+  background-size:300%;
+}
+@keyframes rotateBorder{0%{background-position:0%}100%{background-position:300%}}
+@keyframes btnPulse{0%,100%{box-shadow:0 0 0 0 #a78bfa44}50%{box-shadow:0 0 40px 8px #a78bfa33}}
+.enter-btn:hover{transform:scale(1.06) translateY(-3px)}
+.enter-btn .btn-shine{
+  position:absolute;top:0;left:-100%;width:50%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent);
+  animation:shine 2.5s 1.5s ease-in-out infinite;
+}
+@keyframes shine{0%{left:-100%}100%{left:200%}}
+
+.floating-emojis{position:absolute;inset:0;pointer-events:none;z-index:1}
+.fe{
+  position:absolute;font-size:24px;opacity:0.35;user-select:none;
+  animation:floatAround 6s ease-in-out infinite;
+}
+@keyframes floatAround{
+  0%,100%{transform:translateY(0) rotate(0deg)}
+  33%{transform:translateY(-20px) rotate(8deg)}
+  66%{transform:translateY(-10px) rotate(-5deg)}
+}
+
+/* ===================== MOOD SELECT ===================== */
+#screen-mood{z-index:10}
+.mood-header{
+  text-align:center;margin-bottom:36px;
+  animation:fadeSlideUp 0.6s both;
+}
+.mood-header h2{
+  font-family:var(--font-display);font-size:36px;font-weight:800;
+  background:linear-gradient(135deg,#fff,#a78bfa);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.mood-header p{color:#ffffff66;font-size:14px;margin-top:8px;letter-spacing:1px}
+
+.mood-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:16px;
+  max-width:520px;width:90%;
+}
+.mood-card{
+  background:var(--card);border:1px solid var(--border);border-radius:20px;
+  padding:24px 16px;text-align:center;cursor:none;
+  transition:transform 0.25s cubic-bezier(.34,1.56,.64,1),border-color 0.2s,background 0.2s;
+  animation:cardPop 0.5s cubic-bezier(.34,1.56,.64,1) both;
+  position:relative;overflow:hidden;
+}
+.mood-card::after{
+  content:'';position:absolute;inset:0;border-radius:20px;opacity:0;
+  transition:opacity 0.3s;
+}
+.mood-card:hover{transform:scale(1.1) translateY(-6px)}
+.mood-card:hover::after{opacity:1}
+.mood-card:active{transform:scale(0.96)}
+@keyframes cardPop{from{opacity:0;transform:scale(0.6) rotate(-5deg)}to{opacity:1;transform:scale(1) rotate(0)}}
+.mood-emoji{font-size:42px;display:block;margin-bottom:10px;animation:emojiWobble 2s ease-in-out infinite}
+@keyframes emojiWobble{0%,100%{transform:scale(1)}50%{transform:scale(1.15) rotate(5deg)}}
+.mood-label{font-family:var(--font-display);font-size:14px;font-weight:700;letter-spacing:1px}
+
+/* ===================== WORLD ===================== */
+#screen-world{z-index:10;padding:0}
+.world-ui{
+  position:relative;z-index:5;width:100%;height:100vh;
+  display:flex;flex-direction:column;
+}
+
+/* TOP BAR */
+.top-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 24px;backdrop-filter:blur(12px);
+  background:rgba(0,0,0,0.25);border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.top-logo{
+  font-family:var(--font-display);font-weight:800;font-size:20px;
+  background:linear-gradient(90deg,var(--purple),var(--pink));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  display:flex;align-items:center;gap:8px;
+}
+.top-logo svg{width:28px;height:28px}
+.top-actions{display:flex;gap:10px;align-items:center}
+.top-mood-badge{
+  padding:6px 16px;border-radius:999px;font-size:13px;
+  font-family:var(--font-display);font-weight:700;letter-spacing:1px;
+  animation:badgePulse 2s ease-in-out infinite;
+}
+@keyframes badgePulse{0%,100%{box-shadow:0 0 0 0 currentColor}50%{box-shadow:0 0 12px 3px currentColor}}
+.icon-btn{
+  width:40px;height:40px;border-radius:50%;background:var(--card);
+  border:1px solid var(--border);display:flex;align-items:center;justify-content:center;
+  font-size:18px;cursor:none;transition:transform 0.2s,background 0.2s;
+}
+.icon-btn:hover{transform:scale(1.15) rotate(15deg);background:#ffffff18}
+
+/* MAIN AREA */
+.world-main{
+  flex:1;display:flex;position:relative;overflow:hidden;
+}
+
+/* CHARACTER STAGE */
+.character-stage{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  position:relative;flex-direction:column;gap:16px;
+}
+.character-wrap{
+  position:relative;cursor:none;
+  animation:characterFloat 3s ease-in-out infinite;
+}
+@keyframes characterFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
+.character-svg{width:180px;height:180px;filter:drop-shadow(0 20px 40px currentColor)}
+.character-speech{
+  background:rgba(255,255,255,0.12);backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,0.2);border-radius:20px;
+  padding:12px 20px;max-width:280px;text-align:center;
+  font-size:15px;font-weight:500;line-height:1.5;
+  animation:speechPop 0.4s cubic-bezier(.34,1.56,.64,1) both;
+  position:relative;
+}
+.character-speech::before{
+  content:'';position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);
+  width:0;height:0;border-left:8px solid transparent;
+  border-right:8px solid transparent;border-top:10px solid rgba(255,255,255,0.2);
+}
+@keyframes speechPop{from{opacity:0;transform:scale(0.7)}to{opacity:1;transform:scale(1)}}
+
+/* SIDE PANEL */
+.side-panel{
+  width:220px;background:rgba(0,0,0,0.3);backdrop-filter:blur(16px);
+  border-left:1px solid var(--border);padding:20px 16px;
+  display:flex;flex-direction:column;gap:12px;flex-shrink:0;
+  overflow-y:auto;
+}
+.panel-title{
+  font-family:var(--font-display);font-size:12px;font-weight:700;
+  letter-spacing:2px;color:#ffffff44;text-transform:uppercase;margin-bottom:4px;
+}
+.action-btn{
+  background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:12px 14px;cursor:none;display:flex;align-items:center;gap:10px;
+  font-size:13px;font-weight:500;color:#fff;
+  transition:transform 0.2s cubic-bezier(.34,1.56,.64,1),background 0.2s,border-color 0.2s;
+  text-align:left;
+}
+.action-btn:hover{transform:scale(1.04) translateX(-3px);background:#ffffff15}
+.action-btn:active{transform:scale(0.96)}
+.action-btn span:first-child{font-size:20px;flex-shrink:0}
+
+/* BOTTOM BAR */
+.bottom-bar{
+  padding:12px 20px;backdrop-filter:blur(12px);
+  background:rgba(0,0,0,0.25);border-top:1px solid var(--border);
+  display:flex;gap:10px;justify-content:center;flex-wrap:wrap;flex-shrink:0;
+}
+.mood-switch-btn{
+  padding:8px 18px;border-radius:999px;background:var(--card);
+  border:1px solid var(--border);font-size:13px;cursor:none;
+  transition:transform 0.2s,border-color 0.2s;display:flex;align-items:center;gap:6px;
+}
+.mood-switch-btn:hover{transform:scale(1.08) translateY(-2px)}
+
+/* ===================== CHAOS SCREEN ===================== */
+#screen-chaos{z-index:20;background:#000}
+.chaos-content{text-align:center;z-index:2;position:relative}
+.chaos-title{
+  font-family:var(--font-display);font-size:72px;font-weight:800;
+  animation:chaosText 0.2s linear infinite;
+}
+@keyframes chaosText{
+  0%{color:#f472b6;transform:skewX(-3deg) scale(1.02)}
+  25%{color:#fbbf24;transform:skewX(3deg) scale(0.98)}
+  50%{color:#34d399;transform:skewX(-2deg) scale(1.01)}
+  75%{color:#60a5fa;transform:skewX(2deg) scale(0.99)}
+  100%{color:#f472b6;transform:skewX(-3deg) scale(1.02)}
+}
+.chaos-stop{
+  margin-top:32px;padding:14px 40px;border-radius:999px;
+  border:2px solid #fff;background:transparent;color:#fff;
+  font-family:var(--font-display);font-size:16px;font-weight:700;cursor:none;
+  animation:chaosBtn 0.3s linear infinite;
+}
+@keyframes chaosBtn{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
+.chaos-emoji-rain{position:fixed;inset:0;pointer-events:none;z-index:1}
+.chaos-em{
+  position:absolute;font-size:28px;
+  animation:rainFall linear infinite;top:-40px;
+}
+@keyframes rainFall{from{transform:translateY(0) rotate(0deg)}to{transform:translateY(110vh) rotate(720deg)}}
+
+/* ===================== BUBBLE GAME ===================== */
+#screen-bubbles{z-index:15}
+.bubble-area{position:relative;width:100%;height:100vh;overflow:hidden;background:#080b1a}
+.bubble-header-ui{
+  position:absolute;top:0;left:0;right:0;padding:20px 24px;
+  display:flex;justify-content:space-between;align-items:center;z-index:5;
+}
+.score-display{
+  font-family:var(--font-display);font-size:32px;font-weight:800;
+  background:linear-gradient(90deg,var(--purple),var(--pink));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.bubble{
+  position:absolute;border-radius:50%;cursor:none;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:700;
+  animation:bubbleFloat linear infinite,bubbleWobble 1.5s ease-in-out infinite;
+  transition:transform 0.1s;border:2px solid rgba(255,255,255,0.2);
+  user-select:none;
+}
+@keyframes bubbleFloat{from{bottom:-100px}to{bottom:110%}}
+@keyframes bubbleWobble{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.bubble:hover{transform:scale(1.15)}
+.bubble.popped{animation:popBurst 0.3s forwards}
+@keyframes popBurst{0%{transform:scale(1)}50%{transform:scale(1.6)}100%{transform:scale(0);opacity:0}}
+
+/* ===================== MIXER ===================== */
+#screen-mixer{z-index:15}
+.mixer-container{
+  max-width:560px;width:90%;text-align:center;
+  animation:fadeSlideUp 0.6s both;
+}
+.mixer-header{margin-bottom:32px}
+.mixer-header h2{
+  font-family:var(--font-display);font-size:36px;font-weight:800;color:#fff;
+}
+.mixer-header p{color:#ffffff66;margin-top:8px;font-size:14px}
+
+.mix-area{
+  display:flex;align-items:center;justify-content:center;gap:16px;
+  margin-bottom:28px;flex-wrap:wrap;
+}
+.mix-slot{
+  width:100px;height:100px;border-radius:20px;
+  background:var(--card);border:2px dashed var(--border);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:none;transition:transform 0.2s,border-color 0.2s;
+  font-size:36px;
+}
+.mix-slot:hover{transform:scale(1.08);border-style:solid}
+.mix-slot.filled{border-style:solid;animation:slotFilled 0.4s cubic-bezier(.34,1.56,.64,1)}
+@keyframes slotFilled{from{transform:scale(0.7)}to{transform:scale(1)}}
+.mix-plus{font-size:28px;color:#ffffff44;font-weight:300}
+.mix-equals{font-size:28px;color:#ffffff44;font-weight:300}
+.mix-result{
+  width:120px;height:120px;border-radius:24px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-size:42px;border:2px solid var(--border);background:var(--card);
+  transition:all 0.4s;
+}
+.mix-result.glowing{animation:resultGlow 1s ease-in-out infinite alternate}
+@keyframes resultGlow{from{box-shadow:0 0 10px var(--purple)}to{box-shadow:0 0 40px var(--pink),0 0 60px var(--purple)}}
+.mix-result-label{font-size:11px;color:#ffffff66;margin-top:4px;text-align:center;max-width:110px}
+
+.mixer-moods{
+  display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:24px;
+}
+.mixer-mood-chip{
+  padding:10px 16px;border-radius:12px;background:var(--card);border:1px solid var(--border);
+  cursor:none;font-size:22px;transition:transform 0.2s;
+  display:flex;align-items:center;gap:8px;
+}
+.mixer-mood-chip:hover{transform:scale(1.12) translateY(-3px)}
+.mixer-mood-chip span{font-size:12px;color:#ffffff88;font-family:var(--font-display);font-weight:700}
+
+.mix-btn{
+  padding:13px 40px;border-radius:999px;border:none;
+  background:linear-gradient(90deg,var(--purple),var(--pink));
+  font-family:var(--font-display);font-size:16px;font-weight:700;color:#fff;
+  cursor:none;transition:transform 0.2s;
+  animation:btnPulse 2s ease-in-out infinite;
+}
+.mix-btn:hover{transform:scale(1.06)}
+
+.mix-back{
+  margin-top:12px;background:none;border:1px solid var(--border);color:#ffffff66;
+  padding:10px 28px;border-radius:999px;cursor:none;font-size:13px;
+  transition:all 0.2s;
+}
+.mix-back:hover{border-color:#ffffff44;color:#fff}
+
+/* ===================== CONFETTI ===================== */
+.confetti-piece{
+  position:fixed;pointer-events:none;z-index:9990;
+  width:8px;height:8px;border-radius:2px;
+  animation:confettiFall linear forwards;
+}
+@keyframes confettiFall{
+  0%{transform:translateY(-20px) rotate(0deg);opacity:1}
+  100%{transform:translateY(105vh) rotate(720deg);opacity:0}
+}
+
+/* ===================== TOAST ===================== */
+#toast{
+  position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(100px);
+  background:rgba(255,255,255,0.1);backdrop-filter:blur(16px);
+  border:1px solid rgba(255,255,255,0.2);border-radius:999px;
+  padding:12px 28px;font-size:14px;font-weight:500;z-index:9995;
+  transition:transform 0.4s cubic-bezier(.34,1.56,.64,1);pointer-events:none;
+}
+#toast.show{transform:translateX(-50%) translateY(0)}
+
+/* ===================== MOOD JOURNAL ===================== */
+#screen-journal{z-index:15;background:#080b1a}
+.journal-container{
+  max-width:560px;width:90%;max-height:90vh;overflow-y:auto;
+  animation:fadeSlideUp 0.6s both;
+}
+.journal-header{text-align:center;margin-bottom:28px}
+.journal-header h2{font-family:var(--font-display);font-size:32px;font-weight:800;color:#fff}
+.journal-entries{display:flex;flex-direction:column;gap:12px;margin-bottom:20px}
+.journal-entry{
+  background:var(--card);border:1px solid var(--border);border-radius:16px;
+  padding:16px 18px;display:flex;align-items:center;gap:14px;
+  animation:cardPop 0.3s cubic-bezier(.34,1.56,.64,1) both;
+}
+.entry-emoji{font-size:32px;flex-shrink:0}
+.entry-info{flex:1}
+.entry-time{font-size:11px;color:#ffffff44;margin-top:2px}
+.entry-mood{font-family:var(--font-display);font-weight:700;font-size:15px}
+.no-entries{text-align:center;color:#ffffff33;padding:40px 0;font-size:15px}
+.journal-back{
+  background:none;border:1px solid var(--border);color:#ffffff66;
+  padding:10px 28px;border-radius:999px;cursor:none;font-size:13px;
+  transition:all 0.2s;display:block;margin:0 auto;
+}
+.journal-back:hover{border-color:#ffffff44;color:#fff}
+
+/* ===================== MUSIC VISUALIZER ===================== */
+.music-viz{
+  display:flex;align-items:flex-end;gap:3px;height:40px;
+  position:absolute;bottom:20px;left:50%;transform:translateX(-50%);
+  z-index:3;
+}
+.viz-bar{
+  width:4px;border-radius:2px;background:currentColor;opacity:0.6;
+  animation:vizDance linear infinite;
+}
+@keyframes vizDance{0%,100%{height:4px}50%{height:var(--h,20px)}}
+
+/* ===================== BREATH ZONE ===================== */
+#screen-breath{z-index:15;background:#020612}
+.breath-container{text-align:center;position:relative;z-index:2}
+.breath-orb{
+  width:200px;height:200px;border-radius:50%;margin:0 auto 32px;
+  background:radial-gradient(circle,#4c1d95,#1e1b4b);
+  border:2px solid #7c3aed44;
+  animation:breathOrb 4s ease-in-out infinite;
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;
+  box-shadow:0 0 60px #7c3aed44,0 0 120px #4c1d9533;
+}
+@keyframes breathOrb{
+  0%,100%{transform:scale(1);box-shadow:0 0 40px #7c3aed33}
+  50%{transform:scale(1.35);box-shadow:0 0 80px #a78bfa55,0 0 140px #7c3aed44}
+}
+.breath-text{
+  font-family:var(--font-display);font-size:28px;font-weight:700;color:#a78bfa;
+  animation:breathTextFade 4s ease-in-out infinite;
+}
+@keyframes breathTextFade{
+  0%,5%{opacity:0}10%,45%{opacity:1}50%,55%{opacity:0.4}60%,95%{opacity:1}100%{opacity:0}
+}
+.breath-instruction{color:#a78bfa88;font-size:14px;margin-top:12px;animation:breathTextFade 4s ease-in-out infinite}
+.breath-back{
+  margin-top:32px;background:none;border:1px solid #7c3aed44;color:#a78bfa66;
+  padding:10px 28px;border-radius:999px;cursor:none;font-size:13px;
+  transition:all 0.2s;display:inline-block;
+}
+.breath-back:hover{border-color:#a78bfa;color:#a78bfa}
+
+/* Stars bg in breath */
+.breath-stars{position:fixed;inset:0;pointer-events:none;z-index:1}
+.breath-star{
+  position:absolute;background:#fff;border-radius:50%;
+  animation:twinkle ease-in-out infinite;
+}
+@keyframes twinkle{0%,100%{opacity:0.1;transform:scale(0.8)}50%{opacity:0.8;transform:scale(1.2)}}
+
+/* ===================== WORLD-SPECIFIC STYLES ===================== */
+/* Happy world */
+.world-happy #bg-canvas{filter:saturate(1.4)}
+/* Sad world */
+.world-sad{background:#050e1f !important}
+/* Angry world */
+.world-angry #bg-canvas{filter:saturate(2) hue-rotate(-20deg)}
+/* Calm world */
+.world-calm{background:#020d0a !important}
+
+/* ===================== UTILITIES ===================== */
+button{background:none;border:none;color:inherit;font-family:inherit}
+.hidden{opacity:0 !important;pointer-events:none !important;transform:scale(1.04) !important}
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div id="cursor"></div>
+<div id="cursor-trail"></div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- CANVAS BG -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- =================== LANDING SCREEN =================== -->
+<div class="screen" id="screen-landing">
+  <div class="floating-emojis" id="floating-emojis"></div>
+  <div class="landing-content">
+    <div class="logo-wrap">
+      <!-- LOGO SVG -->
+      <svg class="logo-svg" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="lg1" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#f472b6"/>
+            <stop offset="100%" stop-color="#7c3aed"/>
+          </radialGradient>
+          <radialGradient id="lg2" cx="50%" cy="30%" r="60%">
+            <stop offset="0%" stop-color="#fbbf24" stop-opacity="0.9"/>
+            <stop offset="100%" stop-color="#f472b6" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <!-- Outer glow ring -->
+        <circle cx="36" cy="36" r="34" stroke="url(#lg1)" stroke-width="1.5" stroke-opacity="0.4" fill="none"/>
+        <!-- Main orb -->
+        <circle cx="36" cy="36" r="28" fill="url(#lg1)" opacity="0.9"/>
+        <!-- Inner shine -->
+        <ellipse cx="30" cy="26" rx="10" ry="6" fill="url(#lg2)" opacity="0.5"/>
+        <!-- Smile face -->
+        <circle cx="29" cy="32" r="3.5" fill="#fff" opacity="0.95"/>
+        <circle cx="43" cy="32" r="3.5" fill="#fff" opacity="0.95"/>
+        <path d="M26 42 Q36 52 46 42" stroke="#fff" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.95"/>
+        <!-- Sparkles -->
+        <path d="M10 18 L12 14 L14 18 L18 20 L14 22 L12 26 L10 22 L6 20 Z" fill="#fbbf24" opacity="0.9"/>
+        <path d="M56 8 L57.5 5 L59 8 L62 9.5 L59 11 L57.5 14 L56 11 L53 9.5 Z" fill="#34d399" opacity="0.9"/>
+        <circle cx="60" cy="52" r="3" fill="#60a5fa" opacity="0.8"/>
+        <circle cx="12" cy="54" r="2" fill="#f472b6" opacity="0.7"/>
+        <!-- Orbit dots -->
+        <circle cx="36" cy="4" r="2" fill="#a78bfa" opacity="0.6"/>
+        <circle cx="68" cy="36" r="2" fill="#f472b6" opacity="0.6"/>
+        <circle cx="36" cy="68" r="2" fill="#34d399" opacity="0.6"/>
+        <circle cx="4" cy="36" r="2" fill="#fbbf24" opacity="0.6"/>
+      </svg>
+      <div class="logo-text">VibeSpace</div>
+    </div>
+    <div class="tagline">your mood · animated alive · every click feels good</div>
+    <button class="enter-btn" onclick="goToMood()">
+      ✨ Enter VibeSpace
+      <div class="btn-shine"></div>
+    </button>
+  </div>
+</div>
+
+<!-- =================== MOOD SELECT SCREEN =================== -->
+<div class="screen hidden" id="screen-mood">
+  <div class="mood-header">
+    <h2>How are you vibing?</h2>
+    <p>PICK YOUR CURRENT MOOD</p>
+  </div>
+  <div class="mood-grid" id="mood-grid"></div>
+</div>
+
+<!-- =================== WORLD SCREEN =================== -->
+<div class="screen hidden" id="screen-world">
+  <div class="world-ui">
+    <!-- TOP BAR -->
+    <div class="top-bar">
+      <div class="top-logo">
+        <svg viewBox="0 0 72 72" fill="none"><defs><radialGradient id="tlg" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#f472b6"/><stop offset="100%" stop-color="#7c3aed"/></radialGradient></defs><circle cx="36" cy="36" r="28" fill="url(#tlg)" opacity="0.9"/><circle cx="29" cy="32" r="3" fill="#fff" opacity="0.9"/><circle cx="43" cy="32" r="3" fill="#fff" opacity="0.9"/><path d="M26 42 Q36 51 46 42" stroke="#fff" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.9"/></svg>
+        VibeSpace
+      </div>
+      <div class="top-actions">
+        <div class="top-mood-badge" id="top-badge"></div>
+        <div class="icon-btn" onclick="openBreath()" title="Breathe">🧘</div>
+        <div class="icon-btn" onclick="openJournal()" title="Journal">📓</div>
+        <div class="icon-btn" onclick="openMixer()" title="Mood Mixer">🧪</div>
+        <div class="icon-btn" onclick="triggerChaos()" title="Chaos!">⚡</div>
+        <div class="icon-btn" onclick="goToMood()" title="Change Mood">🔄</div>
+      </div>
+    </div>
+    <!-- MAIN -->
+    <div class="world-main">
+      <div class="character-stage" id="character-stage">
+        <div class="character-wrap" id="char-wrap" onclick="charClick()">
+          <svg class="character-svg" id="character-svg" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+        <div class="character-speech" id="char-speech">Click me! I have feelings! 😄</div>
+        <div class="music-viz" id="music-viz"></div>
+      </div>
+      <!-- SIDE PANEL -->
+      <div class="side-panel">
+        <div class="panel-title">Activities</div>
+        <button class="action-btn" onclick="triggerConfetti()"><span>🎉</span><span>Confetti Party</span></button>
+        <button class="action-btn" onclick="openBubbles()"><span>🫧</span><span>Pop Bubbles</span></button>
+        <button class="action-btn" onclick="openMixer()"><span>🧪</span><span>Mood Mixer</span></button>
+        <button class="action-btn" onclick="openBreath()"><span>🧘</span><span>Breathe</span></button>
+        <button class="action-btn" onclick="openJournal()"><span>📓</span><span>Mood Journal</span></button>
+        <button class="action-btn" onclick="triggerChaos()"><span>⚡</span><span>Chaos Mode</span></button>
+        <div class="panel-title" style="margin-top:8px">Log Mood</div>
+        <button class="action-btn" onclick="logCurrentMood()"><span>💾</span><span>Save to Journal</span></button>
+        <div class="panel-title" style="margin-top:8px">Change World</div>
+        <button class="action-btn" onclick="goToMood()"><span>🔄</span><span>Switch Mood</span></button>
+      </div>
+    </div>
+    <!-- BOTTOM BAR -->
+    <div class="bottom-bar" id="bottom-bar"></div>
+  </div>
+</div>
+
+<!-- =================== CHAOS SCREEN =================== -->
+<div class="screen hidden" id="screen-chaos">
+  <div class="chaos-emoji-rain" id="chaos-rain"></div>
+  <div class="chaos-content">
+    <div class="chaos-title">ABSOLUTE CHAOS</div>
+    <div style="font-size:18px;color:#ffffff88;margin-top:16px;font-family:var(--font-display)">your vibes broke the universe 💀</div>
+    <button class="chaos-stop" onclick="stopChaos()">STOP THE MADNESS</button>
+  </div>
+</div>
+
+<!-- =================== BUBBLES SCREEN =================== -->
+<div class="screen hidden" id="screen-bubbles">
+  <div class="bubble-area" id="bubble-area">
+    <div class="bubble-header-ui">
+      <div>
+        <div style="font-size:13px;color:#ffffff66;font-family:var(--font-display);letter-spacing:2px">SCORE</div>
+        <div class="score-display" id="score-display">0</div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <div style="font-size:13px;color:#ffffff66" id="combo-display"></div>
+        <button class="icon-btn" onclick="closeBubbles()" style="font-size:20px">✕</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== MIXER SCREEN =================== -->
+<div class="screen hidden" id="screen-mixer">
+  <div class="mixer-container">
+    <div class="mixer-header">
+      <h2>🧪 Mood Mixer</h2>
+      <p>Combine two moods to create something wild</p>
+    </div>
+    <div class="mix-area">
+      <div class="mix-slot" id="mix-slot-1" onclick="clearSlot(0)"><span id="mix-e1">?</span><span style="font-size:10px;color:#ffffff44;margin-top:4px">tap mood</span></div>
+      <div class="mix-plus">+</div>
+      <div class="mix-slot" id="mix-slot-2" onclick="clearSlot(1)"><span id="mix-e2">?</span><span style="font-size:10px;color:#ffffff44;margin-top:4px">tap mood</span></div>
+      <div class="mix-equals">=</div>
+      <div class="mix-result" id="mix-result">
+        <span id="mix-result-emoji" style="font-size:42px">✨</span>
+        <span class="mix-result-label" id="mix-result-label">Pick 2 moods</span>
+      </div>
+    </div>
+    <div class="mixer-moods" id="mixer-moods"></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+      <button class="mix-btn" onclick="doMix()">⚡ Mix It!</button>
+      <button class="mix-back" onclick="closeMixer()">← Back to World</button>
+    </div>
+  </div>
+</div>
+
+<!-- =================== JOURNAL SCREEN =================== -->
+<div class="screen hidden" id="screen-journal">
+  <div class="journal-container">
+    <div class="journal-header">
+      <h2>📓 Mood Journal</h2>
+      <p style="color:#ffffff44;font-size:13px;margin-top:8px">Your emotional history</p>
+    </div>
+    <div class="journal-entries" id="journal-entries"></div>
+    <button class="journal-back" onclick="closeJournal()">← Back to World</button>
+  </div>
+</div>
+
+<!-- =================== BREATH SCREEN =================== -->
+<div class="screen hidden" id="screen-breath">
+  <div class="breath-stars" id="breath-stars"></div>
+  <div class="breath-container">
+    <div class="breath-orb" id="breath-orb">🌙</div>
+    <div class="breath-text" id="breath-text">Breathe In...</div>
+    <div class="breath-instruction">4 seconds in · 4 seconds hold · 4 seconds out</div>
+    <button class="breath-back" onclick="closeBreath()">← Back</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const MOODS = [
+  {id:'happy',   label:'Happy',   emoji:'😄', color:'#fbbf24', bg:['#1a1000','#2d1b00','#1a0800'], particles:['#fbbf24','#f97316','#fef08a'], speech:['Woohoo! You\'re glowing! 🌟','Dance with me! 💃','Life is beautiful! ✨','You radiate happiness! 🌈'], char:'happy'},
+  {id:'sad',     label:'Sad',     emoji:'😢', color:'#60a5fa', bg:['#020a18','#050e22','#020614'], particles:['#60a5fa','#3b82f6','#bfdbfe'], speech:['It\'s okay to feel this way 💙','I\'m here with you 🫂','Rain cleanses everything 🌧️','Tomorrow will be warmer ☀️'], char:'sad'},
+  {id:'angry',   label:'Angry',   emoji:'😠', color:'#f87171', bg:['#1a0202','#2d0505','#180000'], particles:['#f87171','#dc2626','#fca5a5'], speech:['LET IT OUT! 🔥','RAWR! Feeling fiery! 💢','Breathe... just breathe 🌬️','Channel that energy! ⚡'], char:'angry'},
+  {id:'calm',    label:'Calm',    emoji:'😌', color:'#34d399', bg:['#020d08','#031a0e','#020b06'], particles:['#34d399','#10b981','#a7f3d0'], speech:['Breathe in peace... 🌿','The world is gentle 🍃','Stillness is power 🧘','You are serene ✨'], char:'calm'},
+  {id:'excited', label:'Excited', emoji:'🤩', color:'#a78bfa', bg:['#0d0520','#1a0a35','#080318'], particles:['#a78bfa','#7c3aed','#ddd6fe'], speech:['LETS GOOOOO! 🚀','THE HYPE IS REAL! 🎉','ENERGY OVERLOAD! ⚡','THIS IS AMAZING! 🌟'], char:'excited'},
+  {id:'sleepy',  label:'Sleepy',  emoji:'😴', color:'#94a3b8', bg:['#060810','#0a0e1a','#050710'], particles:['#94a3b8','#64748b','#cbd5e1'], speech:['zzz... what? oh hi 😴','Just five more minutes... 💤','Dreams are loading... 🌙','*snore* ...huh? 🛌'], char:'sleepy'},
+];
+
+const MIX_COMBOS = {
+  'happy+sad':     {emoji:'🌦️', label:'Bittersweet nostalgia'},
+  'happy+angry':   {emoji:'🔥😄', label:'Chaotic happy fire'},
+  'happy+calm':    {emoji:'🌻', label:'Pure blissful peace'},
+  'happy+excited': {emoji:'🎆', label:'MAXIMUM CELEBRATION'},
+  'happy+sleepy':  {emoji:'😪✨', label:'Happy little dreams'},
+  'sad+angry':     {emoji:'🌊🔥', label:'Stormy emotional chaos'},
+  'sad+calm':      {emoji:'🌧️🌿', label:'Melancholy serenity'},
+  'sad+excited':   {emoji:'😭🎉', label:'Crying at the party'},
+  'sad+sleepy':    {emoji:'😴💧', label:'Weeping into sleep'},
+  'angry+calm':    {emoji:'🌋🧘', label:'Controlled inner fire'},
+  'angry+excited': {emoji:'⚡💢', label:'EXPLOSIVE ENERGY'},
+  'angry+sleepy':  {emoji:'😤😴', label:'Too tired to be mad'},
+  'calm+excited':  {emoji:'🏄‍♂️', label:'Excited zen flow state'},
+  'calm+sleepy':   {emoji:'🌙🌿', label:'Dreamy peaceful drift'},
+  'excited+sleepy':{emoji:'💫😴', label:'Hyper then crash'},
+};
+
+const CHAR_SVG = {
+  happy: `<defs><radialGradient id="ch" cx="50%" cy="40%" r="55%"><stop offset="0%" stop-color="#fef08a"/><stop offset="100%" stop-color="#f59e0b"/></radialGradient></defs>
+    <circle cx="90" cy="85" r="65" fill="url(#ch)" opacity="0.95"/>
+    <circle cx="68" cy="72" r="9" fill="#92400e" opacity="0.9"/>
+    <circle cx="112" cy="72" r="9" fill="#92400e" opacity="0.9"/>
+    <circle cx="65" cy="69" r="3" fill="#fff" opacity="0.8"/>
+    <circle cx="109" cy="69" r="3" fill="#fff" opacity="0.8"/>
+    <path d="M60 98 Q90 125 120 98" stroke="#92400e" stroke-width="4" stroke-linecap="round" fill="none"/>
+    <path d="M55 60 Q68 50 78 58" stroke="#92400e" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <path d="M102 58 Q112 50 125 60" stroke="#92400e" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <circle cx="40" cy="170" r="16" fill="#fbbf24" opacity="0.6"/>
+    <circle cx="140" cy="168" r="14" fill="#fbbf24" opacity="0.6"/>`,
+
+  sad: `<defs><radialGradient id="cs" cx="50%" cy="40%" r="55%"><stop offset="0%" stop-color="#bfdbfe"/><stop offset="100%" stop-color="#3b82f6"/></radialGradient></defs>
+    <circle cx="90" cy="90" r="65" fill="url(#cs)" opacity="0.9"/>
+    <circle cx="68" cy="75" r="9" fill="#1e3a5f" opacity="0.9"/>
+    <circle cx="112" cy="75" r="9" fill="#1e3a5f" opacity="0.9"/>
+    <circle cx="65" cy="72" r="3" fill="#fff" opacity="0.7"/>
+    <circle cx="109" cy="72" r="3" fill="#fff" opacity="0.7"/>
+    <path d="M62 105 Q90 90 118 105" stroke="#1e3a5f" stroke-width="4" stroke-linecap="round" fill="none"/>
+    <path d="M55 65 Q68 72 78 65" stroke="#1e3a5f" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <path d="M102 65 Q112 72 125 65" stroke="#1e3a5f" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <ellipse cx="60" cy="82" rx="7" ry="10" fill="#60a5fa" opacity="0.4"/>
+    <ellipse cx="120" cy="82" rx="7" ry="10" fill="#60a5fa" opacity="0.4"/>
+    <circle cx="64" cy="92" r="4" fill="#93c5fd" opacity="0.8"/>
+    <circle cx="116" cy="90" r="4" fill="#93c5fd" opacity="0.8"/>`,
+
+  angry: `<defs><radialGradient id="ca" cx="50%" cy="40%" r="55%"><stop offset="0%" stop-color="#fca5a5"/><stop offset="100%" stop-color="#dc2626"/></radialGradient></defs>
+    <circle cx="90" cy="90" r="65" fill="url(#ca)" opacity="0.95"/>
+    <ellipse cx="68" cy="75" rx="10" ry="8" fill="#7f1d1d" opacity="0.9"/>
+    <ellipse cx="112" cy="75" rx="10" ry="8" fill="#7f1d1d" opacity="0.9"/>
+    <circle cx="65" cy="73" r="3" fill="#fff" opacity="0.7"/>
+    <circle cx="109" cy="73" r="3" fill="#fff" opacity="0.7"/>
+    <path d="M64 100 Q90 88 116 100" stroke="#7f1d1d" stroke-width="5" stroke-linecap="round" fill="none"/>
+    <path d="M52 60 Q68 70 80 61" stroke="#7f1d1d" stroke-width="4" stroke-linecap="round" fill="none"/>
+    <path d="M100 61 Q112 70 128 60" stroke="#7f1d1d" stroke-width="4" stroke-linecap="round" fill="none"/>
+    <path d="M20 40 L35 50" stroke="#f87171" stroke-width="3" stroke-linecap="round"/>
+    <path d="M155 35 L145 48" stroke="#f87171" stroke-width="3" stroke-linecap="round"/>
+    <path d="M15 75 L30 72" stroke="#fca5a5" stroke-width="2" stroke-linecap="round"/>
+    <path d="M150 70 L165 73" stroke="#fca5a5" stroke-width="2" stroke-linecap="round"/>`,
+
+  calm: `<defs><radialGradient id="cc" cx="50%" cy="40%" r="55%"><stop offset="0%" stop-color="#a7f3d0"/><stop offset="100%" stop-color="#059669"/></radialGradient></defs>
+    <circle cx="90" cy="90" r="65" fill="url(#cc)" opacity="0.9"/>
+    <path d="M62 75 Q68 72 74 75" stroke="#065f46" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <path d="M106 75 Q112 72 118 75" stroke="#065f46" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <path d="M65 98 Q90 110 115 98" stroke="#065f46" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+    <path d="M50 50 Q60 40 70 48 Q65 35 80 38" stroke="#34d399" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.7"/>
+    <path d="M130 48 Q120 40 110 48 Q115 35 100 38" stroke="#34d399" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.7"/>`,
+
+  excited: `<defs><radialGradient id="ce" cx="50%" cy="40%" r="55%"><stop offset="0%" stop-color="#ddd6fe"/><stop offset="100%" stop-color="#7c3aed"/></radialGradient></defs>
+    <circle cx="90" cy="90" r="65" fill="url(#ce)" opacity="0.9"/>
+    <circle cx="68" cy="72" r="11" fill="#4c1d95" opacity="0.9"/>
+    <circle cx="112" cy="72" r="11" fill="#4c1d95" opacity="0.9"/>
+    <circle cx="63" cy="67" r="4" fill="#fff" opacity="0.9"/>
+    <circle cx="107" cy="67" r="4" fill="#fff" opacity="0.9"/>
+    <circle cx="68" cy="72" r="2" fill="#fff" opacity="0.6"/>
+    <circle cx="112" cy="72" r="2" fill="#fff" opacity="0.6"/>
+    <path d="M58 96 Q90 122 122 96" stroke="#4c1d95" stroke-width="5" stroke-linecap="round" fill="none"/>
+    <path d="M50 50 L46 40 M55 47 L50 38" stroke="#a78bfa" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M130 50 L134 40 M125 47 L130 38" stroke="#f472b6" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M30 90 L22 88 M30 95 L22 97" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>
+    <path d="M150 90 L158 88 M150 95 L158 97" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>`,
+
+  sleepy: `<defs><radialGradient id="csl" cx="50%" cy="40%" r="55%"><stop offset="0%" stop-color="#cbd5e1"/><stop offset="100%" stop-color="#475569"/></radialGradient></defs>
+    <circle cx="90" cy="90" r="65" fill="url(#csl)" opacity="0.9"/>
+    <path d="M58 75 Q68 82 78 75" stroke="#1e293b" stroke-width="4" stroke-linecap="round" fill="none"/>
+    <path d="M102 75 Q112 82 122 75" stroke="#1e293b" stroke-width="4" stroke-linecap="round" fill="none"/>
+    <path d="M68 98 Q90 108 112 98" stroke="#1e293b" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+    <circle cx="90" cy="55" r="5" fill="#94a3b8" opacity="0.5"/>
+    <circle cx="105" cy="42" r="3.5" fill="#94a3b8" opacity="0.4"/>
+    <circle cx="118" cy="30" r="2.5" fill="#94a3b8" opacity="0.3"/>
+    <text x="108" y="58" font-size="18" opacity="0.7" fill="#94a3b8">z</text>
+    <text x="120" y="45" font-size="13" opacity="0.5" fill="#94a3b8">z</text>
+    <text x="130" y="34" font-size="9" opacity="0.3" fill="#94a3b8">z</text>`,
+};
+
+// ============================================================
+// STATE
+// ============================================================
+let currentMood = null;
+let currentScreen = 'landing';
+let score = 0, combo = 0, comboTimer = null;
+let bubbleInterval = null;
+let breathInterval = null;
+let breathPhase = 0;
+let mixSlots = [null, null];
+let journal = JSON.parse(localStorage.getItem('vs_journal') || '[]');
+let speechIdx = 0;
+let chaosInterval = null;
+let particleColors = ['#a78bfa','#f472b6','#34d399','#fbbf24','#60a5fa','#f87171'];
+let cursorX = 0, cursorY = 0;
+let trailCount = 0;
+
+// ============================================================
+// CURSOR
+// ============================================================
+const cursorEl = document.getElementById('cursor');
+const trailEl = document.getElementById('cursor-trail');
+
+document.addEventListener('mousemove', e => {
+  cursorX = e.clientX; cursorY = e.clientY;
+  cursorEl.style.left = cursorX + 'px';
+  cursorEl.style.top = cursorY + 'px';
+  trailEl.style.left = cursorX + 'px';
+  trailEl.style.top = cursorY + 'px';
+  trailCount++;
+  if (trailCount % 3 === 0) spawnCursorParticle(cursorX, cursorY);
+});
+
+document.addEventListener('mousedown', () => cursorEl.classList.add('cursor-big'));
+document.addEventListener('mouseup', () => cursorEl.classList.remove('cursor-big'));
+
+function spawnCursorParticle(x, y) {
+  const c = currentMood ? currentMood.particles[Math.floor(Math.random() * currentMood.particles.length)] : particleColors[Math.floor(Math.random() * particleColors.length)];
+  const p = document.createElement('div');
+  p.className = 'particle';
+  const size = 4 + Math.random() * 6;
+  p.style.cssText = `left:${x}px;top:${y}px;width:${size}px;height:${size}px;background:${c};animation-duration:${0.5+Math.random()*0.4}s`;
+  document.body.appendChild(p);
+  setTimeout(() => p.remove(), 900);
+}
+
+// ============================================================
+// CANVAS BACKGROUND
+// ============================================================
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+let particles_bg = [];
+let animFrame;
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+function initBgParticles() {
+  particles_bg = [];
+  const colors = currentMood ? currentMood.particles : ['#a78bfa','#f472b6','#34d399'];
+  for (let i = 0; i < 60; i++) {
+    particles_bg.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: 1 + Math.random() * 3,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+      opacity: 0.2 + Math.random() * 0.5,
+      pulse: Math.random() * Math.PI * 2,
+    });
+  }
+}
+
+function animateBg() {
+  animFrame = requestAnimationFrame(animateBg);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw gradient bg
+  const bg = currentMood ? currentMood.bg : ['#080b1a','#0d1030','#050818'];
+  const grad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 0, canvas.width/2, canvas.height/2, canvas.width * 0.8);
+  grad.addColorStop(0, bg[1]);
+  grad.addColorStop(0.5, bg[0]);
+  grad.addColorStop(1, bg[2]);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Cursor glow
+  if (cursorX && currentScreen === 'world') {
+    const gc = ctx.createRadialGradient(cursorX, cursorY, 0, cursorX, cursorY, 200);
+    const mc = currentMood ? currentMood.color : '#a78bfa';
+    gc.addColorStop(0, mc + '22');
+    gc.addColorStop(1, 'transparent');
+    ctx.fillStyle = gc;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  // Particles
+  particles_bg.forEach(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.pulse += 0.02;
+    if (p.x < 0) p.x = canvas.width;
+    if (p.x > canvas.width) p.x = 0;
+    if (p.y < 0) p.y = canvas.height;
+    if (p.y > canvas.height) p.y = 0;
+    const r = p.r * (1 + 0.3 * Math.sin(p.pulse));
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+    ctx.fillStyle = p.color;
+    ctx.globalAlpha = p.opacity * (0.7 + 0.3 * Math.sin(p.pulse));
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  });
+
+  // Connection lines
+  if (currentScreen === 'world') {
+    for (let i = 0; i < particles_bg.length; i++) {
+      for (let j = i + 1; j < particles_bg.length; j++) {
+        const dx = particles_bg[i].x - particles_bg[j].x;
+        const dy = particles_bg[i].y - particles_bg[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 100) {
+          ctx.beginPath();
+          ctx.moveTo(particles_bg[i].x, particles_bg[i].y);
+          ctx.lineTo(particles_bg[j].x, particles_bg[j].y);
+          ctx.strokeStyle = currentMood ? currentMood.color : '#a78bfa';
+          ctx.globalAlpha = (1 - dist / 100) * 0.08;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+        }
+      }
+    }
+  }
+}
+
+initBgParticles();
+animateBg();
+
+// ============================================================
+// SCREEN TRANSITIONS
+// ============================================================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+  const el = document.getElementById('screen-' + id);
+  if (el) {
+    el.classList.remove('hidden');
+    currentScreen = id;
+  }
+}
+
+// ============================================================
+// LANDING
+// ============================================================
+const FLOAT_EMOJIS = ['✨','🌈','💫','🎉','🔥','💜','🎵','🌙','⭐','🎊','🌸','💎','🦋','🍀','🌺'];
+const feContainer = document.getElementById('floating-emojis');
+FLOAT_EMOJIS.forEach((e, i) => {
+  const el = document.createElement('div');
+  el.className = 'fe';
+  el.textContent = e;
+  el.style.cssText = `left:${4+i*6.5}%;top:${15+Math.sin(i*0.7)*40}%;animation-delay:${i*0.3}s;animation-duration:${3+Math.random()*2}s`;
+  feContainer.appendChild(el);
+});
+
+// ============================================================
+// MOOD SELECT
+// ============================================================
+function goToMood() {
+  buildMoodGrid();
+  showScreen('mood');
+}
+
+function buildMoodGrid() {
+  const grid = document.getElementById('mood-grid');
+  grid.innerHTML = '';
+  MOODS.forEach((m, i) => {
+    const card = document.createElement('div');
+    card.className = 'mood-card';
+    card.style.cssText = `animation-delay:${i*0.08}s;border-color:${m.color}44`;
+    card.innerHTML = `<span class="mood-emoji">${m.emoji}</span><div class="mood-label" style="color:${m.color}">${m.label}</div>`;
+    card.addEventListener('mouseenter', () => { card.style.borderColor = m.color; card.style.background = m.color + '22'; });
+    card.addEventListener('mouseleave', () => { card.style.borderColor = m.color + '44'; card.style.background = 'var(--card)'; });
+    card.addEventListener('click', () => selectMood(m));
+    grid.appendChild(card);
+  });
+}
+
+function selectMood(mood) {
+  currentMood = mood;
+  initBgParticles();
+  buildWorld();
+  showScreen('world');
+  logMoodEntry(mood);
+}
+
+// ============================================================
+// WORLD
+// ============================================================
+function buildWorld() {
+  const m = currentMood;
+  // Badge
+  const badge = document.getElementById('top-badge');
+  badge.textContent = m.emoji + ' ' + m.label;
+  badge.style.background = m.color + '22';
+  badge.style.color = m.color;
+  badge.style.border = `1px solid ${m.color}55`;
+
+  // Character
+  document.getElementById('character-svg').innerHTML = CHAR_SVG[m.char] || CHAR_SVG.happy;
+  document.getElementById('character-svg').style.color = m.color;
+  speechIdx = 0;
+  document.getElementById('char-speech').textContent = m.speech[0];
+
+  // Music viz
+  buildMusicViz(m.color);
+
+  // Bottom bar mood switchers
+  const bar = document.getElementById('bottom-bar');
+  bar.innerHTML = '';
+  MOODS.forEach(md => {
+    const b = document.createElement('button');
+    b.className = 'mood-switch-btn';
+    b.innerHTML = `${md.emoji} ${md.label}`;
+    b.style.borderColor = md.id === currentMood.id ? md.color : 'var(--border)';
+    b.style.color = md.id === currentMood.id ? md.color : '#fff';
+    b.addEventListener('click', () => selectMood(md));
+    bar.appendChild(b);
+  });
+}
+
+function buildMusicViz(color) {
+  const viz = document.getElementById('music-viz');
+  viz.innerHTML = '';
+  viz.style.color = color;
+  for (let i = 0; i < 20; i++) {
+    const bar = document.createElement('div');
+    bar.className = 'viz-bar';
+    const h = 6 + Math.random() * 28;
+    bar.style.cssText = `background:${color};height:${h}px;--h:${h}px;animation-duration:${0.4+Math.random()*0.8}s;animation-delay:${Math.random()*0.5}s`;
+    viz.appendChild(bar);
+  }
+}
+
+function charClick() {
+  const m = currentMood;
+  if (!m) return;
+  speechIdx = (speechIdx + 1) % m.speech.length;
+  const speech = document.getElementById('char-speech');
+  speech.style.animation = 'none';
+  setTimeout(() => {
+    speech.style.animation = 'speechPop 0.4s cubic-bezier(.34,1.56,.64,1) both';
+    speech.textContent = m.speech[speechIdx];
+  }, 10);
+
+  // Burst around character
+  const wrap = document.getElementById('char-wrap');
+  const rect = wrap.getBoundingClientRect();
+  spawnBurst(rect.left + rect.width/2, rect.top + rect.height/2, m.color, 12);
+  showToast(m.speech[speechIdx]);
+}
+
+// ============================================================
+// CONFETTI
+// ============================================================
+function triggerConfetti() {
+  const colors = currentMood ? currentMood.particles : ['#a78bfa','#f472b6','#34d399','#fbbf24'];
+  for (let i = 0; i < 80; i++) {
+    setTimeout(() => {
+      const piece = document.createElement('div');
+      piece.className = 'confetti-piece';
+      const c = colors[Math.floor(Math.random() * colors.length)];
+      const x = Math.random() * window.innerWidth;
+      const rot = Math.random() * 360;
+      piece.style.cssText = `left:${x}px;top:-10px;background:${c};transform:rotate(${rot}deg);animation-duration:${1.5+Math.random()*1.5}s;animation-delay:0s;width:${6+Math.random()*8}px;height:${6+Math.random()*8}px;border-radius:${Math.random()>0.5?'50%':'2px'}`;
+      document.body.appendChild(piece);
+      setTimeout(() => piece.remove(), 3500);
+    }, i * 18);
+  }
+  showToast('🎉 Party time!');
+}
+
+// ============================================================
+// BURST
+// ============================================================
+function spawnBurst(x, y, color, count = 8) {
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('div');
+    p.style.cssText = `position:fixed;width:8px;height:8px;border-radius:50%;background:${color};left:${x}px;top:${y}px;pointer-events:none;z-index:9993`;
+    document.body.appendChild(p);
+    const angle = (i / count) * Math.PI * 2;
+    const dist = 40 + Math.random() * 40;
+    p.animate([
+      {transform: 'translate(-50%,-50%) scale(1)', opacity: 1},
+      {transform: `translate(calc(-50% + ${Math.cos(angle)*dist}px), calc(-50% + ${Math.sin(angle)*dist}px)) scale(0)`, opacity: 0}
+    ], {duration: 500 + Math.random()*200, easing: 'ease-out', fill: 'forwards'}).onfinish = () => p.remove();
+  }
+}
+
+// ============================================================
+// CHAOS
+// ============================================================
+function triggerChaos() {
+  showScreen('chaos');
+  const rain = document.getElementById('chaos-rain');
+  rain.innerHTML = '';
+  const chaosEmojis = ['😭','🔥','💀','⚡','🌈','💣','🤯','👻','💥','🌪️','🎸','🤡','🚀','💫','🎊'];
+  for (let i = 0; i < 30; i++) {
+    const em = document.createElement('div');
+    em.className = 'chaos-em';
+    em.textContent = chaosEmojis[Math.floor(Math.random() * chaosEmojis.length)];
+    em.style.cssText = `left:${Math.random()*100}%;animation-duration:${1+Math.random()*2}s;animation-delay:${Math.random()*2}s;font-size:${20+Math.random()*24}px`;
+    rain.appendChild(em);
+  }
+  // Auto confetti
+  let ct = 0;
+  chaosInterval = setInterval(() => {
+    if (ct++ > 10) { clearInterval(chaosInterval); return; }
+    triggerConfetti();
+  }, 400);
+}
+
+function stopChaos() {
+  clearInterval(chaosInterval);
+  if (currentMood) showScreen('world');
+  else showScreen('landing');
+}
+
+// ============================================================
+// BUBBLES
+// ============================================================
+function openBubbles() {
+  score = 0; combo = 0;
+  document.getElementById('score-display').textContent = '0';
+  document.getElementById('combo-display').textContent = '';
+  const area = document.getElementById('bubble-area');
+  // Remove old bubbles
+  area.querySelectorAll('.bubble').forEach(b => b.remove());
+  showScreen('bubbles');
+  bubbleInterval = setInterval(spawnBubble, 900);
+}
+
+function closeBubbles() {
+  clearInterval(bubbleInterval);
+  document.getElementById('bubble-area').querySelectorAll('.bubble').forEach(b => b.remove());
+  if (currentMood) showScreen('world');
+  else showScreen('mood');
+}
+
+const BUBBLE_DATA = [
+  {emoji:'😤', label:'Stress', color:'#f87171', pts:10},
+  {emoji:'😰', label:'Worry', color:'#60a5fa', pts:15},
+  {emoji:'🥱', label:'Boredom', color:'#94a3b8', pts:8},
+  {emoji:'😠', label:'Anger', color:'#f97316', pts:20},
+  {emoji:'😞', label:'Sadness', color:'#818cf8', pts:12},
+  {emoji:'💢', label:'Frustration', color:'#fb7185', pts:18},
+];
+
+function spawnBubble() {
+  const area = document.getElementById('bubble-area');
+  if (!area.isConnected || currentScreen !== 'bubbles') return;
+  const bd = BUBBLE_DATA[Math.floor(Math.random() * BUBBLE_DATA.length)];
+  const size = 55 + Math.random() * 50;
+  const bub = document.createElement('div');
+  bub.className = 'bubble';
+  bub.innerHTML = `<span>${bd.emoji}</span>`;
+  bub.title = bd.label;
+  const x = size/2 + Math.random() * (window.innerWidth - size);
+  const dur = 4 + Math.random() * 5;
+  bub.style.cssText = `width:${size}px;height:${size}px;left:${x}px;background:${bd.color}33;animation-duration:${dur}s,1.5s;border-color:${bd.color}66;color:${bd.color};font-size:${size*0.35}px`;
+  bub.addEventListener('click', () => popBubble(bub, bd));
+  area.appendChild(bub);
+  setTimeout(() => { if (bub.parentNode) bub.remove(); }, dur * 1000);
+}
+
+function popBubble(el, bd) {
+  el.classList.add('popped');
+  el.style.pointerEvents = 'none';
+  score += bd.pts * (combo > 2 ? 2 : 1);
+  combo++;
+  clearTimeout(comboTimer);
+  comboTimer = setTimeout(() => { combo = 0; }, 1500);
+  document.getElementById('score-display').textContent = score;
+  if (combo > 2) {
+    document.getElementById('combo-display').textContent = `🔥 x${combo} COMBO!`;
+  }
+  const rect = el.getBoundingClientRect();
+  spawnBurst(rect.left + rect.width/2, rect.top + rect.height/2, bd.color, 10);
+  showToast(`+${bd.pts}pts — ${bd.label} popped! 💥`);
+  setTimeout(() => el.remove(), 350);
+}
+
+// ============================================================
+// MIXER
+// ============================================================
+function openMixer() {
+  mixSlots = [null, null];
+  updateMixSlots();
+  buildMixerMoods();
+  showScreen('mixer');
+}
+
+function closeMixer() {
+  if (currentMood) showScreen('world');
+  else showScreen('mood');
+}
+
+function buildMixerMoods() {
+  const container = document.getElementById('mixer-moods');
+  container.innerHTML = '';
+  MOODS.forEach(m => {
+    const chip = document.createElement('div');
+    chip.className = 'mixer-mood-chip';
+    chip.innerHTML = `<span>${m.emoji}</span><span>${m.label}</span>`;
+    chip.style.borderColor = m.color + '44';
+    chip.addEventListener('click', () => addToMix(m));
+    container.appendChild(chip);
+  });
+}
+
+function addToMix(mood) {
+  if (!mixSlots[0]) mixSlots[0] = mood;
+  else if (!mixSlots[1] && mixSlots[0].id !== mood.id) mixSlots[1] = mood;
+  else if (mixSlots[0] && mixSlots[1]) {
+    mixSlots[0] = mixSlots[1];
+    mixSlots[1] = mood;
+  }
+  updateMixSlots();
+}
+
+function clearSlot(i) {
+  mixSlots[i] = null;
+  updateMixSlots();
+}
+
+function updateMixSlots() {
+  const s1 = document.getElementById('mix-e1');
+  const s2 = document.getElementById('mix-e2');
+  const slot1 = document.getElementById('mix-slot-1');
+  const slot2 = document.getElementById('mix-slot-2');
+  if (mixSlots[0]) {
+    s1.textContent = mixSlots[0].emoji;
+    slot1.classList.add('filled');
+    slot1.style.borderColor = mixSlots[0].color;
+  } else {
+    s1.textContent = '?';
+    slot1.classList.remove('filled');
+    slot1.style.borderColor = '';
+    slot1.querySelector('span:last-child').textContent = 'tap mood';
+  }
+  if (mixSlots[1]) {
+    s2.textContent = mixSlots[1].emoji;
+    slot2.classList.add('filled');
+    slot2.style.borderColor = mixSlots[1].color;
+  } else {
+    s2.textContent = '?';
+    slot2.classList.remove('filled');
+    slot2.style.borderColor = '';
+    slot2.querySelector('span:last-child').textContent = 'tap mood';
+  }
+  document.getElementById('mix-result').classList.remove('glowing');
+  document.getElementById('mix-result-emoji').textContent = '✨';
+  document.getElementById('mix-result-label').textContent = 'Pick 2 moods';
+}
+
+function doMix() {
+  if (!mixSlots[0] || !mixSlots[1]) { showToast('Pick 2 moods first! 🎭'); return; }
+  const ids = [mixSlots[0].id, mixSlots[1].id].sort();
+  const key = ids[0] + '+' + ids[1];
+  const result = MIX_COMBOS[key] || {emoji: mixSlots[0].emoji + mixSlots[1].emoji, label: 'Mysterious new vibe!'};
+  const rEl = document.getElementById('mix-result');
+  const rEmoji = document.getElementById('mix-result-emoji');
+  const rLabel = document.getElementById('mix-result-label');
+  rEl.classList.add('glowing');
+  rEmoji.style.animation = 'none';
+  setTimeout(() => { rEmoji.style.animation = ''; }, 10);
+  rEmoji.textContent = result.emoji;
+  rLabel.textContent = result.label;
+  triggerConfetti();
+  showToast(`✨ ${result.label} created!`);
+}
+
+// ============================================================
+// JOURNAL
+// ============================================================
+function logMoodEntry(mood) {
+  const entry = {emoji: mood.emoji, label: mood.label, color: mood.color, time: new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}), date: new Date().toLocaleDateString()};
+  journal.unshift(entry);
+  if (journal.length > 20) journal = journal.slice(0, 20);
+  localStorage.setItem('vs_journal', JSON.stringify(journal));
+}
+
+function logCurrentMood() {
+  if (!currentMood) return;
+  logMoodEntry(currentMood);
+  showToast('📓 Mood saved to journal!');
+}
+
+function openJournal() {
+  renderJournal();
+  showScreen('journal');
+}
+
+function closeJournal() {
+  if (currentMood) showScreen('world');
+  else showScreen('mood');
+}
+
+function renderJournal() {
+  const container = document.getElementById('journal-entries');
+  container.innerHTML = '';
+  if (journal.length === 0) {
+    container.innerHTML = '<div class="no-entries">No entries yet. Start exploring your moods! 🌈</div>';
+    return;
+  }
+  journal.forEach((entry, i) => {
+    const el = document.createElement('div');
+    el.className = 'journal-entry';
+    el.style.animationDelay = i * 0.05 + 's';
+    el.style.borderColor = entry.color + '44';
+    el.innerHTML = `
+      <div class="entry-emoji">${entry.emoji}</div>
+      <div class="entry-info">
+        <div class="entry-mood" style="color:${entry.color}">${entry.label} Mood</div>
+        <div class="entry-time">${entry.date} at ${entry.time}</div>
+      </div>`;
+    container.appendChild(el);
+  });
+}
+
+// ============================================================
+// BREATHE
+// ============================================================
+function openBreath() {
+  buildBreathStars();
+  showScreen('breath');
+  breathPhase = 0;
+  runBreath();
+  breathInterval = setInterval(runBreath, 4000);
+}
+
+function closeBreath() {
+  clearInterval(breathInterval);
+  if (currentMood) showScreen('world');
+  else showScreen('mood');
+}
+
+function runBreath() {
+  const phases = ['Breathe In... 🌬️', 'Hold... 💫', 'Breathe Out... 🌿', 'Rest... ✨'];
+  document.getElementById('breath-text').textContent = phases[breathPhase % 4];
+  breathPhase++;
+}
+
+function buildBreathStars() {
+  const container = document.getElementById('breath-stars');
+  container.innerHTML = '';
+  for (let i = 0; i < 80; i++) {
+    const s = document.createElement('div');
+    s.className = 'breath-star';
+    const size = Math.random() * 2.5 + 0.5;
+    s.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;top:${Math.random()*100}%;animation:twinkle ${2+Math.random()*3}s ${Math.random()*3}s ease-in-out infinite`;
+    container.appendChild(s);
+  }
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+let toastTimer = null;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ============================================================
+// CLICK BURST ON WORLD
+// ============================================================
+document.addEventListener('click', e => {
+  if (currentScreen === 'world' && e.target.tagName !== 'BUTTON') {
+    if (currentMood) spawnBurst(e.clientX, e.clientY, currentMood.color, 8);
+  }
+});
+
+// ============================================================
+// INIT
+// ============================================================
+showScreen('landing');
+</script>
+</body>
+</html>

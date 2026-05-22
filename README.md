@@ -187,11 +187,8 @@
 📁 VibeSpace/
 │
 ├── 📄 index.html          ← The ENTIRE application lives here
-│                            (HTML + CSS + JS all in one file)
-│
-├── 📄 README.md           ← You're reading this!
-│
-└── 📄 HOW_TO_BUILD.html   ← Interactive setup guide
+                              (HTML + CSS + JS all in one file)
+
 ```
 
 > **One file. The whole universe. That's VibeSpace.**
